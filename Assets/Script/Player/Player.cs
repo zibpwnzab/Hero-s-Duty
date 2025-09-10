@@ -3,21 +3,38 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public GameObject vfxSlashPrefab; // Сюда перетащим префаб эффекта
-    public Transform vfxSpawnPoint;   // Сюда перетащим точку спавна
+    public GameObject vfxSlashPrefab; // префаб VFX (желательно без коллайдера)
+    public Transform vfxSpawnPoint;
     private GameObject _activeVFX;
+
     public static int last;
     private int now;
     public static bool cam;
     public static int MoveCounter;
+
     private Vector2 fingerDownPosition;
     private Vector2 fingerUpPosition;
+
     public Animator _anim;
     public static bool canGo;
     public Rigidbody rb;
     public float speed;
+
     public TrailRenderer playerTrail;
     public TrailRenderer playerTrail2;
+
+    [Header("Obstacle filtering")]
+    [Tooltip("Установить слой(и) препятствий (например 'Obstacle' или 'Default'). Если не хотите фильтровать — поставьте 'Everything' или включите нужные слои.")]
+    public LayerMask obstacleLayers = 0; // выставь в инспекторе слой(и) стен/препятствий
+    [Tooltip("Дополнительные теги объектов-препятствий (опционально)")]
+    public string[] obstacleTags = new string[] { "Obstacle" };
+
+    // для предсказательной остановки
+    private bool isMoving = false;
+    private Vector3 moveDirection = Vector3.zero;
+    private Vector3 moveStartPos = Vector3.zero;
+    private float stopDistance = Mathf.Infinity; // расстояние до препятствия (если найдено)
+    private float raycastMaxDistance = 100f; // можно увеличить по карте
 
     private void Start()
     {
@@ -26,27 +43,24 @@ public class Player : MonoBehaviour
         canGo = true;
         MoveCounter = 0;
 
-        // На всякий случай явно отключаем применение root motion
         if (_anim != null)
             _anim.applyRootMotion = false;
 
-        // Убедимся, что Rigidbody не кинематический
         if (rb != null)
+        {
             rb.isKinematic = false;
-        if (playerTrail != null)
-            playerTrail.emitting = false; // Выключаем на старте
-        if (playerTrail2 != null)
-            playerTrail2.emitting = false; // Выключаем на старте
+            // рекомендуется ставить continuous в случае быстрого движения, чтобы избежать туннелирования
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        }
 
-
+        if (playerTrail != null) playerTrail.emitting = false;
+        if (playerTrail2 != null) playerTrail2.emitting = false;
     }
 
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
-        {
             fingerDownPosition = Input.mousePosition;
-        }
 
         if (Input.GetMouseButtonUp(0))
         {
@@ -55,79 +69,109 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Синхронизация позиции/ротации после анимации:
-    // это блокирует визуальные смещения, которые анимация может попытаться применить.
-    private void LateUpdate()
+    // Физика — проверка окончания движения по расстоянию
+    private void FixedUpdate()
     {
-        // Защита от null
-        if (rb == null) return;
+        if (!isMoving) return;
 
-        // Принудительно ставим корень объекта туда, где Rigidbody (физика)
-        transform.position = rb.position;
-
-        // Синхронизируем вращение с rb (если нужно) — иначе оставим текущее
-        // Если ты вращаешь через LookRotation при старте движения, это сохранит корректный вид
-        // Только вращаем по Y, чтобы избежать кренов
-        if (rb.velocity.sqrMagnitude > 0.001f)
+        // если мы заранее посчитали расстояние до препятствия — останавливаемся при достижении
+        if (!float.IsInfinity(stopDistance))
         {
-            Quaternion targetRot = Quaternion.LookRotation(new Vector3(rb.velocity.x, 0f, rb.velocity.z));
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 1f); // немедленная установка
+            float travelled = Vector3.Project(transform.position - moveStartPos, moveDirection).magnitude;
+            // небольшая дельта чтобы не застрять
+            if (travelled + 0.01f >= stopDistance)
+            {
+                StopMovement();
+            }
+        }
+
+        // дополнительная защита: если скорость почти нулевая — считаем движение завершённым
+        if (rb.velocity.magnitude < 0.01f && isMoving)
+        {
+            StopMovement();
         }
     }
 
     private void up() => Run(0, speed, 1);
     public void down() => Run(0, -speed, 2);
-
     public void left() => Run(-speed, 0, 3);
     public void right() => Run(speed, 0, 4);
 
-    // ... после всего кода добавь этот метод
     private void OnCollisionEnter(Collision collision)
     {
-        // Выключаем шлейф при столкновении
-        if (playerTrail != null)
-            playerTrail.emitting = false;
-        if (playerTrail2 != null)
-            playerTrail2.emitting = false;
-        // 1. Немедленно останавливаем движение игрока
-        rb.velocity = Vector3.zero;
-
-        // 2. Проверяем, есть ли сейчас активный эффект
-        if (_activeVFX != null)
+        // Игнорируем коллизии с самими дочерними объектами игрока (например VFX, если он привязан как child)
+        if (IsSelfCollision(collision))
         {
-            // 3. Если есть - уничтожаем его
-            Destroy(_activeVFX);
-            _activeVFX = null; // Очищаем ссылку на всякий случай
+            //Debug.Log($"Игнорируем самоколлизию с {collision.gameObject.name}");
+            return;
         }
 
-        // 4. (Рекомендация) Сбрасываем анимацию на Idle, чтобы персонаж не бежал в стену
-        _anim.Play("Idle");
+        // Останавливаемся ТОЛЬКО если столкнулись с действительным препятствием
+        if (!IsObstacle(collision.gameObject))
+        {
+            //Debug.Log($"Игнорируем коллизию с не-препятствием: {collision.gameObject.name} (layer {collision.gameObject.layer})");
+            return;
+        }
 
-        // 5. (Рекомендация) Сбрасываем 'last', чтобы можно было сразу двигаться в другую сторону
+        // Если это реальное препятствие — останавливаемся
+        StopMovement();
+
+        // явный сброс анимации
+        if (_anim != null) _anim.Play("Idle");
+
         last = 0;
     }
+
+    private bool IsSelfCollision(Collision collision)
+    {
+        // если объект столкновения — сам игрок или дочерний объект игрока
+        if (collision.transform.IsChildOf(transform) || collision.gameObject == gameObject)
+            return true;
+
+        // иногда у VFX есть Rigidbody с тем же корнем — ещё проверка на rb
+        if (collision.rigidbody != null && collision.rigidbody == rb)
+            return true;
+
+        return false;
+    }
+
+    private bool IsObstacle(GameObject go)
+    {
+        // 1) фильтрация по слоям (если установлен obstacleLayers)
+        if (obstacleLayers != 0)
+        {
+            if (((1 << go.layer) & obstacleLayers.value) != 0)
+                return true;
+        }
+
+        // 2) фильтрация по тегам (если заданы)
+        if (obstacleTags != null && obstacleTags.Length > 0)
+        {
+            foreach (var t in obstacleTags)
+                if (!string.IsNullOrEmpty(t) && go.CompareTag(t))
+                    return true;
+        }
+
+        // если ни слой ни тэг не совпал — считаем НЕпрепятствием (избежим ложных остановок)
+        return false;
+    }
+
     public void PlaySlashVFX()
     {
-        // Если старый эффект еще существует, уничтожаем его перед созданием нового
         if (_activeVFX != null)
-        {
             Destroy(_activeVFX);
-        }
 
         if (vfxSlashPrefab != null && vfxSpawnPoint != null)
         {
-            // Создаем И СОХРАНЯЕМ ссылку на новый эффект в нашу переменную
             _activeVFX = Instantiate(vfxSlashPrefab, vfxSpawnPoint.position, vfxSpawnPoint.rotation);
-
-            // Делаем VFX дочерним к точке спавна
             _activeVFX.transform.parent = vfxSpawnPoint;
+            // РЕКОМЕНДАЦИЯ: убрать коллайдеры/rigidbody у префаба VFX или поместить VFX на слой, который игрок игнорирует.
         }
     }
 
     private void MovePlayer()
     {
         if (cam == false) return;
-
         if (rb.velocity.magnitude > 0.01f) return;
 
         float deltaX = fingerDownPosition.x - fingerUpPosition.x;
@@ -154,20 +198,51 @@ public class Player : MonoBehaviour
     private void Run(float x, float z, int lastValue)
     {
         if (last == lastValue) return;
-        if (playerTrail != null)
-            playerTrail.emitting = true;
-        if (playerTrail2 != null)
-            playerTrail2.emitting = true;
+
+        if (playerTrail != null) playerTrail.emitting = true;
+        if (playerTrail2 != null) playerTrail2.emitting = true;
         canGo = false;
 
-        // Вместо "run" лучше проигрывать анимацию атаки.
-        // Если ее нет, можно оставить "run", но эффект будет не так синхронизирован.
-        _anim.Play("run"); // Предположим, у тебя есть анимация с таким названием
+        if (_anim != null) _anim.Play("run");
 
-        // движение только через физику
-        rb.velocity = new Vector3(x, 0, z);
+        Vector3 dir = new Vector3(x, 0f, z);
+        if (dir == Vector3.zero) return;
 
-        // поворачиваем игрока по направлению (если скорость есть)
+        // Нормализуем направление и ставим скорость через rb
+        Vector3 vel = dir.normalized * new Vector3(Mathf.Abs(x) + Mathf.Abs(z), 0f, 0f).magnitude;
+        // корректное вычисление скорости (используем speed как множитель)
+        vel = dir.normalized * speed;
+
+        // --- Raycast вперед чтобы узнать расстояние до ближайшего препятствия (опционально)
+        stopDistance = Mathf.Infinity;
+        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, dir.normalized); // чуть выше пола
+        RaycastHit hit;
+        if (obstacleLayers != 0)
+        {
+            if (Physics.Raycast(ray, out hit, raycastMaxDistance, obstacleLayers))
+            {
+                stopDistance = hit.distance;
+                // если hit.target — это сам игрок или его child, игнорируем (защита)
+                if (hit.collider != null && hit.collider.transform.IsChildOf(transform))
+                {
+                    stopDistance = Mathf.Infinity;
+                }
+            }
+        }
+        else
+        {
+            // если obstacleLayers == 0 — не делаем raycast (пользователь не настроил слои)
+            stopDistance = Mathf.Infinity;
+        }
+
+        // включаем режим движения
+        isMoving = true;
+        moveDirection = dir.normalized;
+        moveStartPos = transform.position;
+
+        // Непосредственно даём скорость
+        rb.velocity = vel;
+
         if (rb.velocity != Vector3.zero)
             transform.rotation = Quaternion.LookRotation(rb.velocity);
 
@@ -175,12 +250,26 @@ public class Player : MonoBehaviour
         last = lastValue;
     }
 
-    // --- опционально: если хочешь явно перехватывать root motion (иногда вызывается) ---
-    // Этот метод будет вызван Animator'ом, если root motion задействован.
-    // Оставляем его пустым — чтобы не применять root motion к transform.
-    private void OnAnimatorMove()
+    private void StopMovement()
     {
-        // НИЧЕГО не делаем: не применяем animator.deltaPosition / deltaRotation
-        // если вдруг root-motion пытается отработать, мы игнорируем его.
+        // выключаем шлейф и движение
+        if (playerTrail != null) playerTrail.emitting = false;
+        if (playerTrail2 != null) playerTrail2.emitting = false;
+
+        rb.velocity = Vector3.zero;
+        isMoving = false;
+        stopDistance = Mathf.Infinity;
+        canGo = true;
+
+        if (_activeVFX != null)
+        {
+            Destroy(_activeVFX);
+            _activeVFX = null;
+        }
+
+        if (_anim != null) _anim.Play("Idle");
     }
+
+    // блокируем root motion
+    private void OnAnimatorMove() { }
 }
