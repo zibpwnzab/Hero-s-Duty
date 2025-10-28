@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public GameObject vfxSlashPrefab; // ������ VFX (���������� ��� ����������)
+    public GameObject vfxSlashPrefab; // префаб VFX (желательно без коллайдера)
     public Transform vfxSpawnPoint;
     private GameObject _activeVFX;
 
@@ -24,23 +24,23 @@ public class Player : MonoBehaviour
     public TrailRenderer playerTrail2;
 
     [Header("Obstacle filtering")]
-    [Tooltip("���������� ����(�) ����������� (�������� 'Obstacle' ��� 'Default'). ���� �� ������ ����������� � ��������� 'Everything' ��� �������� ������ ����.")]
-    public LayerMask obstacleLayers = 0; // ������� � ���������� ����(�) ����/�����������
-    [Tooltip("�������������� ���� ��������-����������� (�����������)")]
+    [Tooltip("Установить слой(и) препятствий (например 'Obstacle' или 'Default'). Если не хотите фильтровать — поставьте 'Everything' или включите нужные слои.")]
+    public LayerMask obstacleLayers = 0; // выставь в инспекторе слой(и) стен/препятствий
+    [Tooltip("Дополнительные теги объектов-препятствий (опционально)")]
     public string[] obstacleTags = new string[] { "Obstacle" };
-    
-    [Header("Attack Settings")]
-    [Tooltip("���������� ���� 'Enemy', ������� �� ������� ��� ������")]
-    public LayerMask enemyLayers; // ���� ����� ����� ��������� ���� "Enemy"
-    [Tooltip("�� ����� ���������� ����� ����� ��������� �����")]
-    public float attackDistance = 1.5f; // ��������� ����� (��������� ��� ������ ����� ������)
 
-    // ��� ���������������� ���������
+    [Header("Attack Settings")]
+    [Tooltip("Установите слой 'Enemy', который вы создали для врагов")]
+    public LayerMask enemyLayers; // Сюда нужно будет выставить слой "Enemy"
+    [Tooltip("На каком расстоянии игрок может атаковать врага")]
+    public float attackDistance = 1.5f; // Дистанция атаки (подберите под размер вашей клетки)
+
+    // для предсказательной остановки
     private bool isMoving = false;
     private Vector3 moveDirection = Vector3.zero;
     private Vector3 moveStartPos = Vector3.zero;
-    private float stopDistance = Mathf.Infinity; // ���������� �� ����������� (���� �������)
-    private float raycastMaxDistance = 100f; // ����� ��������� �� �����
+    private float stopDistance = Mathf.Infinity; // расстояние до препятствия (если найдено)
+    private float raycastMaxDistance = 100f; // можно увеличить по карте
 
     private void Start()
     {
@@ -55,7 +55,7 @@ public class Player : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false;
-            // ������������� ������� continuous � ������ �������� ��������, ����� �������� ��������������
+            // рекомендуется ставить continuous в случае быстрого движения, чтобы избежать туннелирования
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
 
@@ -75,85 +75,85 @@ public class Player : MonoBehaviour
         }
     }
 
-    // ������ � �������� ��������� �������� �� ����������
+    // Физика — проверка окончания движения по расстоянию
     private void FixedUpdate()
     {
         if (!isMoving) return;
 
-        // ���� �� ������� ��������� ���������� �� ����������� � ��������������� ��� ����������
+        // если мы заранее посчитали расстояние до препятствия — останавливаемся при достижении
         if (!float.IsInfinity(stopDistance))
         {
             float travelled = Vector3.Project(transform.position - moveStartPos, moveDirection).magnitude;
-            // ��������� ������ ����� �� ��������
+            // небольшая дельта чтобы не застрять
             if (travelled + 0.01f >= stopDistance)
             {
                 StopMovement();
             }
         }
 
-        // �������������� ������: ���� �������� ����� ������� � ������� �������� �����������
+        // дополнительная защита: если скорость почти нулевая — считаем движение завершённым
         if (rb.linearVelocity.magnitude < 0.01f && isMoving)
         {
             StopMovement();
         }
     }
 
-    private void up() => Run(0, 1, 1);    // ��������: ����� speed, ����������� ������ ���� ��������������� (0, 1, 0)
-    public void down() => Run(0, -1, 2);  // ��������
-    public void left() => Run(-1, 0, 3); // ��������
-    public void right() => Run(1, 0, 4); // ��������
+    private void up() => Run(0, 1, 1);    // ИЗМЕНЕНО: убрал speed, направление должно быть нормализованным (0, 1, 0)
+    public void down() => Run(0, -1, 2);  // ИЗМЕНЕНО
+    public void left() => Run(-1, 0, 3); // ИЗМЕНЕНО
+    public void right() => Run(1, 0, 4); // ИЗМЕНЕНО
 
     private void OnCollisionEnter(Collision collision)
     {
-        // ���������� �������� � ������ ��������� ��������� ������ (�������� VFX, ���� �� �������� ��� child)
+        // Игнорируем коллизии с самими дочерними объектами игрока (например VFX, если он привязан как child)
         if (IsSelfCollision(collision))
         {
-            //Debug.Log($"���������� ������������ � {collision.gameObject.name}");
+            //Debug.Log($"Игнорируем самоколлизию с {collision.gameObject.name}");
             return;
         }
 
-        // ��������������� ������ ���� ����������� � �������������� ������������
+        // Останавливаемся ТОЛЬКО если столкнулись с действительным препятствием
         if (!IsObstacle(collision.gameObject))
         {
-            //Debug.Log($"���������� �������� � ��-������������: {collision.gameObject.name} (layer {collision.gameObject.layer})");
+            //Debug.Log($"Игнорируем коллизию с не-препятствием: {collision.gameObject.name} (layer {collision.gameObject.layer})");
             return;
         }
 
-        // ���� ��� �������� ����������� � ���������������
+        // Если это реальное препятствие — останавливаемся
         StopMovement();
 
-        // ����� ����� ��������
+        // явный сброс анимации
         if (_anim != null) _anim.Play("Idle");
 
         last = 0;
     }
+
     private void OnTriggerEnter(Collider other)
     {
-        // ���������, ��� �� ����� � ������� ������� �� ���� "Enemy"
+        // Проверяем, что мы вошли в триггер врага по слою "Enemy"
         if (((1 << other.gameObject.layer) & enemyLayers.value) != 0)
         {
-            // ��� ����.
-            // ������ ����� `Enemy.cs` ��� ���������� ���� ������ ����� ���� `OnTriggerEnter`.
-
-            // ���� ������ - ������������.
+            // Тут логика.
+            // Предполагаем Enemy.cs или аналогичный скрипт на враге для OnTriggerEnter.
+            // Если нужно - доработать.
             StopMovement();
-
-            // (�����������) ����� �������� �������� ����� � VFX � ������ �����
-            if (_anim != null) _anim.Play("attack"); // �������, ��� ���� �������� "attack"
-
-            // �������������� � �����, �������� �������
-            transform.LookAt(other.transform.position);
-
+            // (Опционально) Анимация атаки персонажа и VFX на спавн поинте
+            if (_anim != null) _anim.Play("attack"); // Убедитесь, что есть анимация "attack"
+            // Поворот лицом к врагу, используя MoveRotation для совместимости с физикой
+            Vector3 lookDir = other.transform.position - transform.position;
+            if (lookDir != Vector3.zero)
+                rb.MoveRotation(Quaternion.LookRotation(lookDir));
             PlaySlashVFX();
         }
     }
+
     private bool IsSelfCollision(Collision collision)
     {
-        // ���� ������ ������������ � ��� ����� ��� �������� ������ ������
+        // если объект столкновения — сам игрок или дочерний объект игрока
         if (collision.transform.IsChildOf(transform) || collision.gameObject == gameObject)
             return true;
 
-        // ������ � VFX ���� Rigidbody � ��� �� ������ � ��� �������� �� rb
+        // иногда у VFX есть Rigidbody с тем же корнем — ещё проверка на rb
         if (collision.rigidbody != null && collision.rigidbody == rb)
             return true;
 
@@ -162,14 +162,14 @@ public class Player : MonoBehaviour
 
     private bool IsObstacle(GameObject go)
     {
-        // 1) ���������� �� ����� (���� ���������� obstacleLayers)
+        // 1) фильтрация по слоям (если установлен obstacleLayers)
         if (obstacleLayers != 0)
         {
             if (((1 << go.layer) & obstacleLayers.value) != 0)
                 return true;
         }
 
-        // 2) ���������� �� ����� (���� ������)
+        // 2) фильтрация по тегам (если заданы)
         if (obstacleTags != null && obstacleTags.Length > 0)
         {
             foreach (var t in obstacleTags)
@@ -177,7 +177,7 @@ public class Player : MonoBehaviour
                     return true;
         }
 
-        // ���� �� ���� �� ��� �� ������ � ������� �������������� (������� ������ ���������)
+        // если ни слой ни тэг не совпал — считаем НЕпрепятствием (избежим ложных остановок)
         return false;
     }
 
@@ -190,18 +190,18 @@ public class Player : MonoBehaviour
         {
             _activeVFX = Instantiate(vfxSlashPrefab, vfxSpawnPoint.position, vfxSpawnPoint.rotation);
             _activeVFX.transform.parent = vfxSpawnPoint;
-            // ������������: ������ ����������/rigidbody � ������� VFX ��� ��������� VFX �� ����, ������� ����� ����������.
+            // РЕКОМЕНДАЦИЯ: убрать коллайдеры/rigidbody у префаба VFX или поместить VFX на слой, который игрок игнорирует.
         }
     }
-    
 
     private void MovePlayer()
     {
         if (cam == false) return;
         if (rb.linearVelocity.magnitude > 0.01f) return;
 
-        float deltaX = fingerDownPosition.x - fingerUpPosition.x;
-        float deltaY = fingerDownPosition.y - fingerUpPosition.y;
+        Vector2 delta = fingerUpPosition - fingerDownPosition;
+        // Добавим минимальный порог для свайпа, чтобы игнорировать тапы или мелкие движения (настройте значение)
+        if (delta.magnitude < 20f) return; // Порог в пикселях, можно увеличить/уменьшить
 
         if (fingerUpPosition.x > fingerDownPosition.x && fingerUpPosition.y > fingerDownPosition.y)
         {
@@ -234,40 +234,42 @@ public class Player : MonoBehaviour
         Vector3 dir = new Vector3(x, 0f, z);
         if (dir == Vector3.zero) return;
 
-        Vector3 vel = dir.normalized * speed; // (���� ������ ��������)
+        // Нормализуем направление и ставим скорость через rb
+        Vector3 vel = dir.normalized * speed;
 
-        // --- Raycast ---
+        // --- Raycast вперед чтобы узнать расстояние до ближайшего препятствия (опционально)
         stopDistance = Mathf.Infinity;
-
-        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, dir.normalized);
+        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, dir.normalized); // чуть выше пола
         RaycastHit hit;
-
-        // !! ���������: �� ���� ������ ����������� (�����)
-        // �� *�����*, ����� ����� ������� �� ����� � ����� � ��� �������.
-        // ������� Raycast ������ "������" ������ 'obstacleLayers'.
-        if (obstacleLayers != 0 && Physics.Raycast(ray, out hit, raycastMaxDistance, obstacleLayers))
+        if (obstacleLayers != 0)
         {
-            // --- ��� ����������� (������ ������) ---
-            stopDistance = hit.distance;
-
-            // ������ �� ��������� � ����
-            if (hit.collider != null && hit.collider.transform.IsChildOf(transform))
+            if (Physics.Raycast(ray, out hit, raycastMaxDistance, obstacleLayers))
             {
-                stopDistance = Mathf.Infinity;
+                stopDistance = hit.distance;
+                // если hit.target — это сам игрок или его child, игнорируем (защита)
+                if (hit.collider != null && hit.collider.transform.IsChildOf(transform))
+                {
+                    stopDistance = Mathf.Infinity;
+                }
             }
         }
-        // !! ���� "if (��� ����)" ��������� ������.
+        else
+        {
+            // если obstacleLayers == 0 — не делаем raycast (пользователь не настроил слои)
+            stopDistance = Mathf.Infinity;
+        }
 
-        // �������� ����� ��������
+        // включаем режим движения
         isMoving = true;
         moveDirection = dir.normalized;
         moveStartPos = transform.position;
 
-        // ��������������� ��� ��������
+        // Непосредственно даём скорость
         rb.linearVelocity = vel;
 
-        if (rb.linearVelocity != Vector3.zero)
-            transform.rotation = Quaternion.LookRotation(rb.linearVelocity);
+        // Поворот с использованием MoveRotation для лучшей совместимости с физикой в новых версиях Unity
+        if (dir != Vector3.zero)
+            rb.MoveRotation(Quaternion.LookRotation(dir));
 
         MoveCounter++;
         last = lastValue;
@@ -275,7 +277,7 @@ public class Player : MonoBehaviour
 
     private void StopMovement()
     {
-        // ��������� ����� � ��������
+        // выключаем шлейф и движение
         if (playerTrail != null) playerTrail.emitting = false;
         if (playerTrail2 != null) playerTrail2.emitting = false;
 
@@ -293,32 +295,32 @@ public class Player : MonoBehaviour
         if (_anim != null) _anim.Play("Idle");
     }
 
-    // ��������� root motion
+    // блокируем root motion
     private void OnAnimatorMove() { }
 
-    // ... ����� ������ OnAnimatorMove()
+    // ... после метода OnAnimatorMove()
 
     /// <summary>
-    /// ���� ����� ���������� ����� (��������, ��������) ����� ������������,
-    /// ����� �������� � ����������� ������ �������� �� ����� �����.
+    /// Этот метод вызывается извне (например, порталом) после телепортации,
+    /// чтобы сбросить и пересчитать логику движения из новой точки.
     /// </summary>
     public void OnTeleport()
     {
-        // 1. ���������� ��������� ������� ��� ������� ����������� ����
+        // 1. Сбрасываем стартовую позицию для расчета пройденного пути
         moveStartPos = transform.position;
 
-        // 2. ��������� ����� Raycast, ����� ����� ����� ����������� � ������� �����������
+        // 2. Выполняем новый Raycast, чтобы найти новое препятствие в текущем направлении
         stopDistance = Mathf.Infinity;
         Ray ray = new Ray(transform.position + Vector3.up * 0.1f, rb.linearVelocity.normalized);
         RaycastHit hit;
 
         if (obstacleLayers != 0 && Physics.Raycast(ray, out hit, raycastMaxDistance, obstacleLayers))
         {
-            // ���������, ��� ��� �� ����� � ������ ���� ��� ���� �������� �������
+            // Проверяем, что луч не попал в самого себя или свои дочерние объекты
             if (hit.collider == null || !hit.collider.transform.IsChildOf(transform))
             {
                 stopDistance = hit.distance;
             }
         }
-    } // <-- ��������� ����������� ������ ������
+    } // <-- последняя закрывающая скобка класса
 }
