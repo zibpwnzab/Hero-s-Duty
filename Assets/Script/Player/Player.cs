@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public GameObject vfxSlashPrefab; // префаб VFX (желательно без коллайдера)
+    public GameObject vfxSlashPrefab; // пїЅпїЅпїЅпїЅпїЅпїЅ VFX (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
     public Transform vfxSpawnPoint;
     private GameObject _activeVFX;
 
@@ -24,17 +24,23 @@ public class Player : MonoBehaviour
     public TrailRenderer playerTrail2;
 
     [Header("Obstacle filtering")]
-    [Tooltip("Установить слой(и) препятствий (например 'Obstacle' или 'Default'). Если не хотите фильтровать — поставьте 'Everything' или включите нужные слои.")]
-    public LayerMask obstacleLayers = 0; // выставь в инспекторе слой(и) стен/препятствий
-    [Tooltip("Дополнительные теги объектов-препятствий (опционально)")]
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ(пїЅ) пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 'Obstacle' пїЅпїЅпїЅ 'Default'). пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 'Everything' пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ.")]
+    public LayerMask obstacleLayers = 0; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ(пїЅ) пїЅпїЅпїЅпїЅ/пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)")]
     public string[] obstacleTags = new string[] { "Obstacle" };
+    
+    [Header("Attack Settings")]
+    [Tooltip("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ 'Enemy', пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ")]
+    public LayerMask enemyLayers; // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "Enemy"
+    [Tooltip("пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ")]
+    public float attackDistance = 1.5f; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
 
-    // для предсказательной остановки
+    // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     private bool isMoving = false;
     private Vector3 moveDirection = Vector3.zero;
     private Vector3 moveStartPos = Vector3.zero;
-    private float stopDistance = Mathf.Infinity; // расстояние до препятствия (если найдено)
-    private float raycastMaxDistance = 100f; // можно увеличить по карте
+    private float stopDistance = Mathf.Infinity; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+    private float raycastMaxDistance = 100f; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
     private void Start()
     {
@@ -49,7 +55,7 @@ public class Player : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false;
-            // рекомендуется ставить continuous в случае быстрого движения, чтобы избежать туннелирования
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ continuous пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
 
@@ -69,66 +75,85 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Физика — проверка окончания движения по расстоянию
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     private void FixedUpdate()
     {
         if (!isMoving) return;
 
-        // если мы заранее посчитали расстояние до препятствия — останавливаемся при достижении
+        // пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (!float.IsInfinity(stopDistance))
         {
             float travelled = Vector3.Project(transform.position - moveStartPos, moveDirection).magnitude;
-            // небольшая дельта чтобы не застрять
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (travelled + 0.01f >= stopDistance)
             {
                 StopMovement();
             }
         }
 
-        // дополнительная защита: если скорость почти нулевая — считаем движение завершённым
-        if (rb.velocity.magnitude < 0.01f && isMoving)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        if (rb.linearVelocity.magnitude < 0.01f && isMoving)
         {
             StopMovement();
         }
     }
 
-    private void up() => Run(0, speed, 1);
-    public void down() => Run(0, -speed, 2);
-    public void left() => Run(-speed, 0, 3);
-    public void right() => Run(speed, 0, 4);
+    private void up() => Run(0, 1, 1);    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅ speed, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (0, 1, 0)
+    public void down() => Run(0, -1, 2);  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    public void left() => Run(-1, 0, 3); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    public void right() => Run(1, 0, 4); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Игнорируем коллизии с самими дочерними объектами игрока (например VFX, если он привязан как child)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ VFX, пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ child)
         if (IsSelfCollision(collision))
         {
-            //Debug.Log($"Игнорируем самоколлизию с {collision.gameObject.name}");
+            //Debug.Log($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ {collision.gameObject.name}");
             return;
         }
 
-        // Останавливаемся ТОЛЬКО если столкнулись с действительным препятствием
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (!IsObstacle(collision.gameObject))
         {
-            //Debug.Log($"Игнорируем коллизию с не-препятствием: {collision.gameObject.name} (layer {collision.gameObject.layer})");
+            //Debug.Log($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {collision.gameObject.name} (layer {collision.gameObject.layer})");
             return;
         }
 
-        // Если это реальное препятствие — останавливаемся
+        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         StopMovement();
 
-        // явный сброс анимации
+        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (_anim != null) _anim.Play("Idle");
 
         last = 0;
     }
+    private void OnTriggerEnter(Collider other)
+    {
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ "Enemy"
+        if (((1 << other.gameObject.layer) & enemyLayers.value) != 0)
+        {
+            // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ.
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ `Enemy.cs` пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ `OnTriggerEnter`.
 
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+            StopMovement();
+
+            // (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ) пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ VFX пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+            if (_anim != null) _anim.Play("attack"); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "attack"
+
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+            transform.LookAt(other.transform.position);
+
+            PlaySlashVFX();
+        }
+    }
     private bool IsSelfCollision(Collision collision)
     {
-        // если объект столкновения — сам игрок или дочерний объект игрока
+        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         if (collision.transform.IsChildOf(transform) || collision.gameObject == gameObject)
             return true;
 
-        // иногда у VFX есть Rigidbody с тем же корнем — ещё проверка на rb
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ VFX пїЅпїЅпїЅпїЅ Rigidbody пїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ rb
         if (collision.rigidbody != null && collision.rigidbody == rb)
             return true;
 
@@ -137,14 +162,14 @@ public class Player : MonoBehaviour
 
     private bool IsObstacle(GameObject go)
     {
-        // 1) фильтрация по слоям (если установлен obstacleLayers)
+        // 1) пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ obstacleLayers)
         if (obstacleLayers != 0)
         {
             if (((1 << go.layer) & obstacleLayers.value) != 0)
                 return true;
         }
 
-        // 2) фильтрация по тегам (если заданы)
+        // 2) пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
         if (obstacleTags != null && obstacleTags.Length > 0)
         {
             foreach (var t in obstacleTags)
@@ -152,7 +177,7 @@ public class Player : MonoBehaviour
                     return true;
         }
 
-        // если ни слой ни тэг не совпал — считаем НЕпрепятствием (избежим ложных остановок)
+        // пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         return false;
     }
 
@@ -165,14 +190,15 @@ public class Player : MonoBehaviour
         {
             _activeVFX = Instantiate(vfxSlashPrefab, vfxSpawnPoint.position, vfxSpawnPoint.rotation);
             _activeVFX.transform.parent = vfxSpawnPoint;
-            // РЕКОМЕНДАЦИЯ: убрать коллайдеры/rigidbody у префаба VFX или поместить VFX на слой, который игрок игнорирует.
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/rigidbody пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ VFX пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ VFX пїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
         }
     }
+    
 
     private void MovePlayer()
     {
         if (cam == false) return;
-        if (rb.velocity.magnitude > 0.01f) return;
+        if (rb.linearVelocity.magnitude > 0.01f) return;
 
         float deltaX = fingerDownPosition.x - fingerUpPosition.x;
         float deltaY = fingerDownPosition.y - fingerUpPosition.y;
@@ -208,43 +234,40 @@ public class Player : MonoBehaviour
         Vector3 dir = new Vector3(x, 0f, z);
         if (dir == Vector3.zero) return;
 
-        // Нормализуем направление и ставим скорость через rb
-        Vector3 vel = dir.normalized * new Vector3(Mathf.Abs(x) + Mathf.Abs(z), 0f, 0f).magnitude;
-        // корректное вычисление скорости (используем speed как множитель)
-        vel = dir.normalized * speed;
+        Vector3 vel = dir.normalized * speed; // (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
 
-        // --- Raycast вперед чтобы узнать расстояние до ближайшего препятствия (опционально)
+        // --- Raycast ---
         stopDistance = Mathf.Infinity;
-        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, dir.normalized); // чуть выше пола
+
+        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, dir.normalized);
         RaycastHit hit;
-        if (obstacleLayers != 0)
+
+        // !! пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅ)
+        // пїЅпїЅ *пїЅпїЅпїЅпїЅпїЅ*, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ Raycast пїЅпїЅпїЅпїЅпїЅпїЅ "пїЅпїЅпїЅпїЅпїЅпїЅ" пїЅпїЅпїЅпїЅпїЅпїЅ 'obstacleLayers'.
+        if (obstacleLayers != 0 && Physics.Raycast(ray, out hit, raycastMaxDistance, obstacleLayers))
         {
-            if (Physics.Raycast(ray, out hit, raycastMaxDistance, obstacleLayers))
+            // --- пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ) ---
+            stopDistance = hit.distance;
+
+            // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
+            if (hit.collider != null && hit.collider.transform.IsChildOf(transform))
             {
-                stopDistance = hit.distance;
-                // если hit.target — это сам игрок или его child, игнорируем (защита)
-                if (hit.collider != null && hit.collider.transform.IsChildOf(transform))
-                {
-                    stopDistance = Mathf.Infinity;
-                }
+                stopDistance = Mathf.Infinity;
             }
         }
-        else
-        {
-            // если obstacleLayers == 0 — не делаем raycast (пользователь не настроил слои)
-            stopDistance = Mathf.Infinity;
-        }
+        // !! пїЅпїЅпїЅпїЅ "if (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)" пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 
-        // включаем режим движения
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         isMoving = true;
         moveDirection = dir.normalized;
         moveStartPos = transform.position;
 
-        // Непосредственно даём скорость
-        rb.velocity = vel;
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        rb.linearVelocity = vel;
 
-        if (rb.velocity != Vector3.zero)
-            transform.rotation = Quaternion.LookRotation(rb.velocity);
+        if (rb.linearVelocity != Vector3.zero)
+            transform.rotation = Quaternion.LookRotation(rb.linearVelocity);
 
         MoveCounter++;
         last = lastValue;
@@ -252,11 +275,11 @@ public class Player : MonoBehaviour
 
     private void StopMovement()
     {
-        // выключаем шлейф и движение
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (playerTrail != null) playerTrail.emitting = false;
         if (playerTrail2 != null) playerTrail2.emitting = false;
 
-        rb.velocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
         isMoving = false;
         stopDistance = Mathf.Infinity;
         canGo = true;
@@ -270,6 +293,32 @@ public class Player : MonoBehaviour
         if (_anim != null) _anim.Play("Idle");
     }
 
-    // блокируем root motion
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ root motion
     private void OnAnimatorMove() { }
+
+    // ... пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ OnAnimatorMove()
+
+    /// <summary>
+    /// пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ) пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ,
+    /// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
+    /// </summary>
+    public void OnTeleport()
+    {
+        // 1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+        moveStartPos = transform.position;
+
+        // 2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ Raycast, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        stopDistance = Mathf.Infinity;
+        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, rb.linearVelocity.normalized);
+        RaycastHit hit;
+
+        if (obstacleLayers != 0 && Physics.Raycast(ray, out hit, raycastMaxDistance, obstacleLayers))
+        {
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+            if (hit.collider == null || !hit.collider.transform.IsChildOf(transform))
+            {
+                stopDistance = hit.distance;
+            }
+        }
+    } // <-- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 }

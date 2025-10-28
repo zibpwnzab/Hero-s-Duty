@@ -5,10 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/scins.unity
     guid: be56ed46647148f4f9f89d45bd27294d
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 78abcefa26ac99449a2c0378251c0f24
   - enabled: 1
@@ -44,37 +44,37 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Levels/Chapter1/LvL10_2.unity
     guid: 311c00216f85f704394bded4f109ddcf
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.1.unity
     guid: 908625d10988b5b43bcd9eadabb246ec
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.2.unity
     guid: 6dbff6a14c15dd945807f686a1c2abdc
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.3.unity
     guid: abd316ce2c76aa14ab1bea529e30bdb6
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.4.unity
     guid: 26139c0f5b0ba8e4fb13eb5788445b16
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.5.unity
     guid: 863a2bef0ea048e4cbf7a1f9873fa19c
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.6.unity
     guid: 3a86d3cff384c64498b93666f43f9067
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.7.unity
     guid: 671a4ac3083cad1409e2e4f184e1b11d
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.8.unity
     guid: 610b2ed353a274b4caa214a0a3051169
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.9.unity
     guid: 65b0ccdc568462243ae7128d0c1742c6
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.10_1.unity
     guid: 98ac7034562c1f44c8b8c7ddb8a07fbb
-  - enabled: 1
+  - enabled: 0
     path: Assets/Levels/Chapter3/LvL3.10_2.unity
     guid: b5676843bef5cb24c842fa5d3cfec200
   m_configObjects: {}

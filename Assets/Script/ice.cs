@@ -29,26 +29,26 @@ public class ice : MonoBehaviour
         {
             if(Player.last == 2)
             {
-                rb.velocity = new Vector3(up.x, 0, up.z);
-                player.transform.rotation = Quaternion.LookRotation(rb.velocity);
+                rb.linearVelocity = new Vector3(up.x, 0, up.z);
+                player.transform.rotation = Quaternion.LookRotation(rb.linearVelocity);
                 Player.last = lastUp;
             }
             else if (Player.last == 1)
             {
-                rb.velocity = new Vector3(down.x, 0, down.z);
-                player.transform.rotation = Quaternion.LookRotation(rb.velocity);
+                rb.linearVelocity = new Vector3(down.x, 0, down.z);
+                player.transform.rotation = Quaternion.LookRotation(rb.linearVelocity);
                 Player.last = lastDown;
             }
             else if (Player.last == 3)
             {
-                rb.velocity = new Vector3(right.x, 0, right.z);
-                player.transform.rotation = Quaternion.LookRotation(rb.velocity);
+                rb.linearVelocity = new Vector3(right.x, 0, right.z);
+                player.transform.rotation = Quaternion.LookRotation(rb.linearVelocity);
                 Player.last = lastRight;
             }
             else if (Player.last == 4)
             {
-                rb.velocity = new Vector3(left.x, 0, left.z);
-                player.transform.rotation = Quaternion.LookRotation(rb.velocity);
+                rb.linearVelocity = new Vector3(left.x, 0, left.z);
+                player.transform.rotation = Quaternion.LookRotation(rb.linearVelocity);
                 Player.last = lastLeft;
             }
 

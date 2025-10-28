@@ -4960,11 +4960,15 @@ PrefabInstance:
       objectReference: {fileID: 811351285}
     - target: {fileID: 5808841087898401696, guid: ea3b6a723c138d04291eb9eb830daf93, type: 3}
       propertyPath: NeedForOne
-      value: 9
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5808841087898401696, guid: ea3b6a723c138d04291eb9eb830daf93, type: 3}
+      propertyPath: NeedForTwo
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5808841087898401696, guid: ea3b6a723c138d04291eb9eb830daf93, type: 3}
       propertyPath: NeedForThree
-      value: 5
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 7809439768348784355, guid: ea3b6a723c138d04291eb9eb830daf93, type: 3}
       propertyPath: m_RootOrder

@@ -26,33 +26,33 @@ public class reaction : MonoBehaviour
         else if (other.tag == "dead")
         {
             anim.Play("dead");
-            rb.velocity = new Vector3(0, 0, 0);
+            rb.linearVelocity = new Vector3(0, 0, 0);
         }
         else if (other.tag == "boss" && killboss.rast == true)
         {
             can -= 1;
-            Debug.Log("ààà");
+            Debug.Log("ï¿½ï¿½ï¿½");
             if (Player.last == 1 && can == 0 )
             {
-                rb.velocity = new Vector3(0, 0, -5) ;  
+                rb.linearVelocity = new Vector3(0, 0, -5) ;  
                 Player.last = 2;
                 can = 2;
             }
             else if (Player.last == 2 && can == 0)
             {
-                rb.velocity = new Vector3(0, 0, 5);
+                rb.linearVelocity = new Vector3(0, 0, 5);
                 Player.last = 1;
                 can = 2;
             }
             else if (Player.last == 3 && can == 0)
             {
-                rb.velocity = new Vector3(5, 0, 0);
+                rb.linearVelocity = new Vector3(5, 0, 0);
                 Player.last = 4;
                 can = 2;
             }
             else if (Player.last == 4 && can == 0)
             {
-                rb.velocity = new Vector3(-5, 0, 0);
+                rb.linearVelocity = new Vector3(-5, 0, 0);
                 Player.last = 3;
                 can = 2;
             }
@@ -61,7 +61,7 @@ public class reaction : MonoBehaviour
 
 
 
-            player.transform.rotation = Quaternion.LookRotation(rb.velocity);
+            player.transform.rotation = Quaternion.LookRotation(rb.linearVelocity);
         }
     }
     private IEnumerator at()

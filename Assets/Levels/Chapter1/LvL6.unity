@@ -7302,6 +7302,18 @@ PrefabInstance:
       propertyPath: mobs
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 5808841087898401696, guid: ea3b6a723c138d04291eb9eb830daf93, type: 3}
+      propertyPath: NeedForOne
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 5808841087898401696, guid: ea3b6a723c138d04291eb9eb830daf93, type: 3}
+      propertyPath: NeedForTwo
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 5808841087898401696, guid: ea3b6a723c138d04291eb9eb830daf93, type: 3}
+      propertyPath: NeedForThree
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 7809439768348784355, guid: ea3b6a723c138d04291eb9eb830daf93, type: 3}
       propertyPath: m_RootOrder
       value: 2
