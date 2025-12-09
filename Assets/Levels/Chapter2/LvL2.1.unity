@@ -914,15 +914,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1465715902362438040, guid: 57ea21ebe8ebae04a959a13870df3f2f, type: 3}
       propertyPath: m_BackGroundColor.b
-      value: 0
+      value: 0.2237896
       objectReference: {fileID: 0}
     - target: {fileID: 1465715902362438040, guid: 57ea21ebe8ebae04a959a13870df3f2f, type: 3}
       propertyPath: m_BackGroundColor.g
-      value: 0
+      value: 0.33319926
       objectReference: {fileID: 0}
     - target: {fileID: 1465715902362438040, guid: 57ea21ebe8ebae04a959a13870df3f2f, type: 3}
       propertyPath: m_BackGroundColor.r
-      value: 0
+      value: 0.4433962
       objectReference: {fileID: 0}
     - target: {fileID: 1465715902362438043, guid: 57ea21ebe8ebae04a959a13870df3f2f, type: 3}
       propertyPath: m_RootOrder
