@@ -321,6 +321,6 @@ public class Player : MonoBehaviour
             {
                 stopDistance = hit.distance;
             }
-        }
+        } 
     } // <-- последняя закрывающая скобка класса
 }
