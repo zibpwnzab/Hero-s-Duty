@@ -4,12 +4,12 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class FallingObject : MonoBehaviour
 {
-    [Header("Настройки падения")]
+  
     public float fallSpeed = 180f;
     public string walkableLayerName = "Default";
 
-    [Header("Настройки Урона")]
-    public Collider damageCollider; // Тот, что с галочкой IsTrigger
+    [Header("ГЌГ Г±ГІГ°Г®Г©ГЄГЁ Г“Г°Г®Г­Г ")]
+    public Collider damageCollider; 
     public LayerMask enemyLayers;
     public GameObject enemyDeathVFX;
 
@@ -22,12 +22,12 @@ public class FallingObject : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _rb.isKinematic = true;
 
-        // Ищем основной (твердый) коллайдер
+    
         var colliders = GetComponents<Collider>();
         foreach (var col in colliders)
         {
             if (!col.isTrigger) _mainCollider = col;
-            else if (damageCollider == null) damageCollider = col; // Авто-поиск триггера
+            else if (damageCollider == null) damageCollider = col; // ГЂГўГІГ®-ГЇГ®ГЁГ±ГЄ ГІГ°ГЁГЈГЈГҐГ°Г 
         }
 
         if (damageCollider != null) damageCollider.enabled = false;
@@ -40,22 +40,20 @@ public class FallingObject : MonoBehaviour
         Player player = collision.gameObject.GetComponent<Player>();
         if (player != null)
         {
-            // ИЗМЕНЕНИЕ: Не смотрим на скорость. 
-            // Вычисляем вектор ОТ игрока К дереву.
+          
             Vector3 directionToTree = transform.position - player.transform.position;
 
-            // Превращаем это в строгое направление (Вверх, Вниз, Влево, Вправо)
+           
             Vector3 fallDirection = GetCardinalDirection(directionToTree);
 
-            Debug.Log($"Удар! Игрок пришел со стороны: {-fallDirection}. Дерево падает в: {fallDirection}");
-
+          
             StartCoroutine(FallRoutine(fallDirection));
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Убиваем врагов триггером
+        
         if (((1 << other.gameObject.layer) & enemyLayers.value) != 0)
         {
             KillEnemy(other.gameObject);
@@ -76,7 +74,7 @@ public class FallingObject : MonoBehaviour
 
         Vector3 rotationAxis = Vector3.Cross(Vector3.up, fallDirection);
 
-        // Точка вращения - низ дерева
+        
         float pivotY = _mainCollider != null ? _mainCollider.bounds.min.y : transform.position.y;
         Vector3 pivotPoint = new Vector3(transform.position.x, pivotY, transform.position.z);
 
@@ -104,12 +102,12 @@ public class FallingObject : MonoBehaviour
         if (newLayer != -1) gameObject.layer = newLayer;
     }
 
-    // Логика определения направления на основе позиций
+    
     private Vector3 GetCardinalDirection(Vector3 diff)
     {
-        diff.y = 0; // Игнорируем высоту
+        diff.y = 0; 
 
-        // Если разница по X больше, значит удар сбоку
+      
         if (Mathf.Abs(diff.x) > Mathf.Abs(diff.z))
         {
             return diff.x > 0 ? Vector3.right : Vector3.left;
