@@ -4,16 +4,18 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class FallingObject : MonoBehaviour
 {
-    [Header("Настройки падения")]
+    private const float TargetFallAngle = 90f;
+
+    [Header("Fall Settings")]
     public float fallSpeed = 180f;
     public string walkableLayerName = "Default";
 
-    [Header("Настройки Урона")]
-    public Collider damageCollider; // Тот, что с галочкой IsTrigger
+    [Header("Damage Settings")]
+    public Collider damageCollider;
     public LayerMask enemyLayers;
     public GameObject enemyDeathVFX;
 
-    private bool _isFallen = false;
+    private bool _isFallen;
     private Rigidbody _rb;
     private Collider _mainCollider;
 
@@ -22,41 +24,43 @@ public class FallingObject : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _rb.isKinematic = true;
 
-        // Ищем основной (твердый) коллайдер
-        var colliders = GetComponents<Collider>();
-        foreach (var col in colliders)
+        Collider[] colliders = GetComponents<Collider>();
+        foreach (Collider col in colliders)
         {
-            if (!col.isTrigger) _mainCollider = col;
-            else if (damageCollider == null) damageCollider = col; // Авто-поиск триггера
+            if (!col.isTrigger)
+            {
+                _mainCollider = col;
+            }
+            else if (damageCollider == null)
+            {
+                damageCollider = col;
+            }
         }
 
-        if (damageCollider != null) damageCollider.enabled = false;
+        if (damageCollider != null)
+        {
+            damageCollider.enabled = false;
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (_isFallen) return;
 
-        Player player = collision.gameObject.GetComponent<Player>();
-        if (player != null)
+        if (collision.gameObject.TryGetComponent(out Player player))
         {
-            // ИЗМЕНЕНИЕ: Не смотрим на скорость. 
-            // Вычисляем вектор ОТ игрока К дереву.
-            Vector3 directionToTree = transform.position - player.transform.position;
-
-            // Превращаем это в строгое направление (Вверх, Вниз, Влево, Вправо)
-            Vector3 fallDirection = GetCardinalDirection(directionToTree);
-
-            Debug.Log($"Удар! Игрок пришел со стороны: {-fallDirection}. Дерево падает в: {fallDirection}");
-
+            Vector3 directionToObject = transform.position - player.transform.position;
+            Vector3 fallDirection = GetCardinalDirection(directionToObject);
             StartCoroutine(FallRoutine(fallDirection));
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Убиваем врагов триггером
-        if (((1 << other.gameObject.layer) & enemyLayers.value) != 0)
+        if (!_isFallen) return;
+
+        bool isEnemyLayer = ((1 << other.gameObject.layer) & enemyLayers.value) != 0;
+        if (isEnemyLayer || other.CompareTag("mob"))
         {
             KillEnemy(other.gameObject);
         }
@@ -65,7 +69,12 @@ public class FallingObject : MonoBehaviour
     private void KillEnemy(GameObject enemy)
     {
         if (enemyDeathVFX != null)
+        {
             Instantiate(enemyDeathVFX, enemy.transform.position, Quaternion.identity);
+        }
+
+        Finish.vrags = Mathf.Max(0, Finish.vrags - 1);
+        killboss.vrags = Mathf.Max(0, killboss.vrags - 1);
         Destroy(enemy);
     }
 
@@ -75,48 +84,37 @@ public class FallingObject : MonoBehaviour
         if (damageCollider != null) damageCollider.enabled = true;
 
         Vector3 rotationAxis = Vector3.Cross(Vector3.up, fallDirection);
-
-        // Точка вращения - низ дерева
         float pivotY = _mainCollider != null ? _mainCollider.bounds.min.y : transform.position.y;
         Vector3 pivotPoint = new Vector3(transform.position.x, pivotY, transform.position.z);
 
         float totalRotation = 0f;
-        float targetAngle = 90f;
 
-        while (totalRotation < targetAngle)
+        while (totalRotation < TargetFallAngle)
         {
             float step = fallSpeed * Time.deltaTime;
-            if (totalRotation + step > targetAngle) step = targetAngle - totalRotation;
+            if (totalRotation + step > TargetFallAngle)
+            {
+                step = TargetFallAngle - totalRotation;
+            }
 
             transform.RotateAround(pivotPoint, rotationAxis, step);
             totalRotation += step;
             yield return null;
         }
 
-        OnFallComplete();
-    }
-
-    private void OnFallComplete()
-    {
         if (damageCollider != null) damageCollider.enabled = false;
 
         int newLayer = LayerMask.NameToLayer(walkableLayerName);
         if (newLayer != -1) gameObject.layer = newLayer;
     }
 
-    // Логика определения направления на основе позиций
-    private Vector3 GetCardinalDirection(Vector3 diff)
+    private static Vector3 GetCardinalDirection(Vector3 diff)
     {
-        diff.y = 0; // Игнорируем высоту
-
-        // Если разница по X больше, значит удар сбоку
+        diff.y = 0f;
         if (Mathf.Abs(diff.x) > Mathf.Abs(diff.z))
         {
-            return diff.x > 0 ? Vector3.right : Vector3.left;
+            return diff.x > 0f ? Vector3.right : Vector3.left;
         }
-        else
-        {
-            return diff.z > 0 ? Vector3.forward : Vector3.back;
-        }
+        return diff.z > 0f ? Vector3.forward : Vector3.back;
     }
 }
